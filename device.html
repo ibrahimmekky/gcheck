@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ar"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحقق</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head><body style="font-family:sans-serif;text-align:center;padding:48px 16px;color:#555">
+<p id="m">جارٍ التحقق من الجهاز...</p>
+<script>
+(async function () {
+  var m = document.getElementById('m');
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg || tg.platform === 'unknown') { m.textContent = 'افتح هذه الصفحة من داخل البوت.'; return; }
+  tg.ready();
+  var act = new URLSearchParams(location.search).get('a') || 'START';
+  var id = '';
+  try {
+    id = localStorage.getItem('gdid') || '';
+    if (!id) { id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); localStorage.setItem('gdid', id); }
+  } catch (e) {}
+  var s = Math.min(screen.width, screen.height) + 'x' + Math.max(screen.width, screen.height) + '@' + (window.devicePixelRatio || 1);
+  var i = { p: tg.platform, v: tg.version, ua: navigator.userAgent.slice(0, 160), sc: s,
+    tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ''), hc: navigator.hardwareConcurrency || 0,
+    dm: navigator.deviceMemory || 0, tp: navigator.maxTouchPoints || 0, gpu: '', md: '' };
+  try { var gl = document.createElement('canvas').getContext('webgl'); var e = gl.getExtension('WEBGL_debug_renderer_info');
+    if (e) i.gpu = String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)).slice(0, 80); } catch (e1) {}
+  try { if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+    var h = await navigator.userAgentData.getHighEntropyValues(['model']); i.md = h.model || ''; } } catch (e2) {}
+  var fp = '';
+  try { var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode([i.p, s, i.hc, i.dm, i.tp, i.gpu, i.md].join('|')));
+    fp = Array.from(new Uint8Array(b)).slice(0, 8).map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); } catch (e3) {}
+  tg.sendData(JSON.stringify({ a: act, id: id, fp: fp, i: i }));
+})();
+</script></body></html>
